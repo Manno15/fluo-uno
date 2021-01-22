@@ -56,13 +56,18 @@ else
   $SED "s#instance[.]zookeepers=localhost:2181#instance.zookeepers=$UNO_HOST:2181#" "$conf"/accumulo-client.properties
   $SED "s#auth[.]principal=#auth.principal=$ACCUMULO_USER#" "$conf"/accumulo-client.properties
   $SED "s#auth[.]token=#auth.token=$ACCUMULO_PASSWORD#" "$conf"/accumulo-client.properties
-  if [[ $ACCUMULO_VERSION =~ ^2\.0\.0.*$ ]]; then
+  if [[ $ACCUMULO_VERSION =~ ^2\.0\..*$ ]]; then
     # Ignore false positive; we actually want the literal '${ZOOKEEPER_HOME}' and not its current value
     # shellcheck disable=SC2016
     $SED 's#:[$][{]ZOOKEEPER_HOME[}]/[*]:#:${ZOOKEEPER_HOME}/*:${ZOOKEEPER_HOME}/lib/*:#' "$conf"/accumulo-env.sh
   fi
 fi
-$SED "s#localhost#$UNO_HOST#" "$conf/masters" "$conf/monitor" "$conf/gc"
+
+managers_file="$conf/managers"
+if [[ -f "$conf/masters" ]]; then
+  managers_file="$conf/masters"
+fi
+$SED "s#localhost#$UNO_HOST#" "$managers_file" "$conf/monitor" "$conf/gc"
 $SED "s#export ZOOKEEPER_HOME=[^ ]*#export ZOOKEEPER_HOME=$ZOOKEEPER_HOME#" "$conf"/accumulo-env.sh
 $SED "s#export ACCUMULO_LOG_DIR=[^ ]*#export ACCUMULO_LOG_DIR=$ACCUMULO_LOG_DIR#" "$conf"/accumulo-env.sh
 if [[ $ACCUMULO_VERSION =~ ^1\..*$ ]]; then
